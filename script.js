@@ -3,7 +3,7 @@
    ========================================================== */
 
 // ---- CONFIG: Google Apps Script Web App URL (deployed as a POST endpoint) ----
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwx2w5LPB9zE8xOD8A4b8EvymXPtvABNVaaHM4Djp78_AUynGxydjEutb4P7-4svC5Z6Q/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfzfYTV2gXfCyZD99pEmuHBYKL9J5WD7EFfJalcFoy_3WXq536WGMiJi8aG6At59-qRw/exec";
 
 // ---- Numeric rating scale (replaces the old 5-star system) ----
 // value -> label shown on each numbered card
