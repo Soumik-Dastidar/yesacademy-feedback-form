@@ -3,7 +3,7 @@
    ========================================================== */
 
 // ---- CONFIG: Google Apps Script Web App URL (deployed as a POST endpoint) ----
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfzfYTV2gXfCyZD99pEmuHBYKL9J5WD7EFfJalcFoy_3WXq536WGMiJi8aG6At59-qRw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPxoCd7J0JsKmo03BsY2LYBaUmpyHuis7nNSApaVaRbaOL5jZ456DuK-dg4qqqDJtTkg/exec";
 
 // ---- Numeric rating scale (replaces the old 5-star system) ----
 // value -> label shown on each numbered card
@@ -273,8 +273,11 @@ form.addEventListener("submit", async (e) => {
   try {
     await fetch(SCRIPT_URL, {
       method: "POST",
-      // Apps Script Web Apps don't support CORS preflight well, so we send
-      // a "simple request" content type and read the response as opaque.
+      // Apps Script Web Apps don't send CORS headers back, so a normal
+      // fetch() throws even when the submission succeeds server-side.
+      // "no-cors" lets the request go through; we just can't read the
+      // response body (which we don't need — success = no network error).
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     });
