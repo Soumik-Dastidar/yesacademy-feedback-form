@@ -185,18 +185,18 @@ function buildPayload() {
   const suggestions = suggestionsField.value.trim();
   const questions = RATING_SETS[category] || [];
 
-  // Collect every rating question as its own labeled field
-  const ratings = {};
-  questions.forEach(q => {
-    ratings[q.label] = ratingText(ratingValues[q.id] || 0);
-  });
+  // Flatten ratings into one "Label: Value | Label: Value" string,
+  // since we send everything as URL query parameters (see submit handler)
+  const ratingsText = questions
+    .map(q => `${q.label}: ${ratingText(ratingValues[q.id] || 0)}`)
+    .join(" | ");
 
   return {
     name: name || "Not provided",
     course: course,
     batchNumber: batch || "Not provided",
     category: category,
-    ratings: ratings,
+    ratings: ratingsText,
     suggestions: suggestions || "None",
     submittedAt: new Date().toISOString()
   };
@@ -270,16 +270,19 @@ form.addEventListener("submit", async (e) => {
 
   const payload = buildPayload();
 
+  // Send as a GET with query parameters — Google's /exec redirect strips
+  // the body from POST requests, so query params are the reliable path.
+  const queryString = new URLSearchParams(payload).toString();
+  const requestUrl = `${SCRIPT_URL}?${queryString}`;
+
   try {
-    await fetch(SCRIPT_URL, {
-      method: "POST",
+    await fetch(requestUrl, {
+      method: "GET",
       // Apps Script Web Apps don't send CORS headers back, so a normal
       // fetch() throws even when the submission succeeds server-side.
       // "no-cors" lets the request go through; we just can't read the
       // response body (which we don't need — success = no network error).
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      mode: "no-cors"
     });
 
     // Show the premium success animation
