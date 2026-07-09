@@ -8,10 +8,10 @@ const WHATSAPP_NUMBER = "8801404026340"; // country code + number, no + or space
 // ---- Numeric rating scale (replaces the old 5-star system) ----
 // value -> label shown on each numbered card
 const RATING_SCALE = [
-  { value: 1, label: "Good" },
-  { value: 2, label: "Very Good" },
-  { value: 3, label: "Excellent" },
-  { value: 4, label: "Wonderful" }
+  { value: 1, label: "Bad" },
+  { value: 2, label: "Average" },
+  { value: 3, label: "Good" },
+  { value: 4, label: "Very Good" }
 ];
 
 // ---- Rating question sets per feedback category ----
