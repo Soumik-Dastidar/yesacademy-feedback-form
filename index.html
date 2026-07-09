@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YES ACADEMY | Student Feedback</title>
+
+<!-- Bootstrap 5 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+<!-- Google Fonts: Poppins (display) + Inter (body/utility) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Page loader: shown while the page is loading, then fades out -->
+<div class="page-loader" id="pageLoader">
+  <img src="https://tinyurl.com/yc6ft2aj" alt="YES ACADEMY" class="loader-logo">
+</div>
+
+<!-- Ambient gradient blobs -->
+<div class="blob blob-red" aria-hidden="true"></div>
+<div class="blob blob-blue" aria-hidden="true"></div>
+
+<div class="page-wrap">
+
+  <!-- Brand header -->
+  <header class="brand-header text-center">
+    <div class="brand-logo-wrap">
+      <img src="https://tinyurl.com/yc6ft2aj" alt="YES ACADEMY Logo" class="brand-logo">
+    </div>
+    <h1 class="brand-title">YES ACADEMY</h1>
+    <p class="brand-sub">Tell us how we're doing — it takes less than a minute.</p>
+  </header>
+
+  <!-- Step ribbon (signature element) -->
+  <div class="ribbon" id="ribbon">
+    <div class="ribbon-step active" data-step="1">
+      <span class="ribbon-dot">1</span><span class="ribbon-label">About you</span>
+    </div>
+    <div class="ribbon-line"></div>
+    <div class="ribbon-step" data-step="2">
+      <span class="ribbon-dot">2</span><span class="ribbon-label">Rate us</span>
+    </div>
+    <div class="ribbon-line"></div>
+    <div class="ribbon-step" data-step="3">
+      <span class="ribbon-dot">3</span><span class="ribbon-label">Send</span>
+    </div>
+  </div>
+
+  <main class="form-card glass-card">
+    <form id="feedbackForm" novalidate>
+
+      <!-- SECTION 1: Basic info -->
+      <section class="form-section" id="section-basic">
+        <div class="mb-3">
+          <label for="studentName" class="form-label">Your Name <span class="optional-tag">(optional)</span></label>
+          <input type="text" class="form-control custom-input" id="studentName" placeholder="e.g. John Doe" autocomplete="name">
+        </div>
+
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label for="course" class="form-label">Course</label>
+            <select class="form-select custom-input" id="course" required>
+              <option value="" selected disabled>Choose course</option>
+              <option value="PTE">PTE</option>
+              <option value="IELTS">IELTS</option>
+            </select>
+            <div class="invalid-feedback">Please select your course.</div>
+          </div>
+
+          <!-- Batch Number: hidden until a course is chosen, animates into view -->
+          <div class="col-sm-6" id="batchWrap" hidden>
+            <label for="batchNumber" class="form-label">Batch Number <span class="optional-tag">(optional)</span></label>
+            <input type="text" class="form-control custom-input" id="batchNumber" placeholder="e.g. PTE-101">
+          </div>
+
+          <div class="col-sm-6">
+            <label for="category" class="form-label">Feedback Category</label>
+            <select class="form-select custom-input" id="category" required>
+              <option value="" selected disabled>Choose category</option>
+              <option value="PTE Mock Test">PTE Mock Test</option>
+              <option value="IELTS Mock Test">IELTS Mock Test</option>
+              <option value="Class Experience">Class Experience</option>
+              <option value="Service Experience">Service Experience</option>
+            </select>
+            <div class="invalid-feedback">Please select a feedback category.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: Dynamic ratings -->
+      <section class="form-section" id="section-ratings" hidden>
+        <div id="ratingsContainer"></div>
+      </section>
+
+      <!-- SECTION 3: Suggestions + submit -->
+      <section class="form-section" id="section-suggestions" hidden>
+        <div class="mb-3">
+          <label for="suggestions" class="form-label">Suggestions <span class="optional-tag">(optional)</span></label>
+          <textarea class="form-control custom-input" id="suggestions" rows="3" maxlength="300" placeholder="Share any suggestions or comments (Optional)"></textarea>
+          <div class="char-count"><span id="charCount">0</span>/300</div>
+        </div>
+
+        <button type="submit" class="btn btn-send w-100" id="sendBtn">
+          <i class="bi bi-whatsapp"></i> Submit
+        </button>
+        <p class="privacy-note text-center">
+          <i class="bi bi-shield-check"></i> Your feedback goes straight to YES ACADEMY's official WhatsApp.
+        </p>
+      </section>
+
+    </form>
+  </main>
+
+  <footer class="page-footer text-center">
+    &copy; <span id="year"></span> YES ACADEMY. All rights reserved.
+  </footer>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-check">
+      <i class="bi bi-check-lg"></i>
+    </div>
+    <h3>Thank you!</h3>
+    <p>Redirecting you to WhatsApp…</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
