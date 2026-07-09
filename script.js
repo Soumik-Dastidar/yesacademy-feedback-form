@@ -185,22 +185,21 @@ function buildPayload() {
   const suggestions = suggestionsField.value.trim();
   const questions = RATING_SETS[category] || [];
 
-  // Send each rating question as its own field (prefixed "r_<id>") so the
-  // Sheet can place it into its own column, instead of one flattened string
-  const payload = {
+  // Flatten ratings into one "Label: Value | Label: Value" string,
+  // since we send everything as URL query parameters (see submit handler)
+  const ratingsText = questions
+    .map(q => `${q.label}: ${ratingText(ratingValues[q.id] || 0)}`)
+    .join(" | ");
+
+  return {
     name: name || "Not provided",
     course: course,
     batchNumber: batch || "Not provided",
     category: category,
+    ratings: ratingsText,
     suggestions: suggestions || "None",
     submittedAt: new Date().toISOString()
   };
-
-  questions.forEach(q => {
-    payload[`r_${q.id}`] = ratingText(ratingValues[q.id] || 0);
-  });
-
-  return payload;
 }
 
 // ---- Validation ----
