@@ -11,7 +11,8 @@ const RATING_SCALE = [
   { value: 1, label: "Bad" },
   { value: 2, label: "Average" },
   { value: 3, label: "Good" },
-  { value: 4, label: "Very Good" }
+  { value: 4, label: "Very Good" },
+  { value: 5, label: "Excellent" }
 ];
 
 // ---- Rating question sets per feedback category ----
@@ -21,12 +22,14 @@ const RATING_SETS = {
     { id: "accuracy", label: "Accuracy of Evaluation" },
     { id: "speaking", label: "Speaking Feedback Quality" },
     { id: "writing", label: "Writing Feedback Quality" },
+    { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
   "IELTS Mock Test": [
     { id: "quality", label: "Mock Test Quality" },
     { id: "bandAccuracy", label: "Band Score Accuracy" },
     { id: "examinerFeedback", label: "Examiner Feedback" },
+    { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
   "Class Experience": [
