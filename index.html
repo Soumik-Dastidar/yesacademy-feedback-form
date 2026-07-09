@@ -110,10 +110,10 @@
         </div>
 
         <button type="submit" class="btn btn-send w-100" id="sendBtn">
-          <i class="bi bi-whatsapp"></i> Submit
+          <i class="bi bi-send-check"></i> Submit
         </button>
         <p class="privacy-note text-center">
-          <i class="bi bi-shield-check"></i> Your feedback goes straight to YES ACADEMY's official WhatsApp.
+          <i class="bi bi-shield-check"></i> Your feedback is securely recorded by YES ACADEMY.
         </p>
       </section>
 
@@ -132,8 +132,14 @@
       <i class="bi bi-check-lg"></i>
     </div>
     <h3>Thank you!</h3>
-    <p>Redirecting you to WhatsApp…</p>
+    <p>Your feedback has been recorded.</p>
   </div>
+</div>
+
+<!-- Error toast: shown if submission fails -->
+<div class="error-toast" id="errorToast">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span id="errorToastMsg">Something went wrong. Please try again.</span>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>

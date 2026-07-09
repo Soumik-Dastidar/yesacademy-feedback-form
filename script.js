@@ -2,8 +2,8 @@
    YES ACADEMY — Student Feedback Form logic
    ========================================================== */
 
-// ---- CONFIG: change only this to update the destination WhatsApp number ----
-const WHATSAPP_NUMBER = "8801404026340"; // country code + number, no + or spaces
+// ---- CONFIG: Google Apps Script Web App URL (deployed as a POST endpoint) ----
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwx2w5LPB9zE8xOD8A4b8EvymXPtvABNVaaHM4Djp78_AUynGxydjEutb4P7-4svC5Z6Q/exec";
 
 // ---- Numeric rating scale (replaces the old 5-star system) ----
 // value -> label shown on each numbered card
@@ -176,8 +176,8 @@ function ratingText(value) {
   return entry ? `${entry.value} - ${entry.label}` : "Not rated";
 }
 
-// ---- Build the WhatsApp message ----
-function buildMessage() {
+// ---- Build the JSON payload for the Google Sheet submission ----
+function buildPayload() {
   const name = document.getElementById("studentName").value.trim();
   const course = courseSelect.value;
   const batch = document.getElementById("batchNumber").value.trim();
@@ -185,29 +185,21 @@ function buildMessage() {
   const suggestions = suggestionsField.value.trim();
   const questions = RATING_SETS[category] || [];
 
-  let lines = [];
-  lines.push("*Student Feedback — YES ACADEMY*");
-  lines.push("");
-  lines.push(`Name: ${name || "Not provided"}`);
-  lines.push(`Course: ${course}`);
-  // Batch Number is only included if the student actually entered one
-  if (batch) {
-    lines.push(`Batch Number: ${batch}`);
-  }
-  lines.push(`Category: ${category}`);
-  lines.push("");
-
+  // Collect every rating question as its own labeled field
+  const ratings = {};
   questions.forEach(q => {
-    const val = ratingValues[q.id] || 0;
-    lines.push(`${q.label}: ${ratingText(val)}`);
+    ratings[q.label] = ratingText(ratingValues[q.id] || 0);
   });
 
-  lines.push("");
-  lines.push(`Suggestions: ${suggestions || "None"}`);
-  lines.push("");
-  lines.push("Thank you!");
-
-  return lines.join("\n");
+  return {
+    name: name || "Not provided",
+    course: course,
+    batchNumber: batch || "Not provided",
+    category: category,
+    ratings: ratings,
+    suggestions: suggestions || "None",
+    submittedAt: new Date().toISOString()
+  };
 }
 
 // ---- Validation ----
@@ -245,30 +237,64 @@ function validateForm() {
   return valid;
 }
 
-// ---- Submit handler ----
-form.addEventListener("submit", (e) => {
+// ---- Reset the form back to its initial state ----
+function resetForm() {
+  form.reset();
+  Object.keys(ratingValues).forEach(k => delete ratingValues[k]);
+  ratingsContainer.innerHTML = "";
+  ratingsSection.hidden = true;
+  suggestionsSection.hidden = true;
+  batchWrap.hidden = true;
+  charCountEl.textContent = "0";
+  setActiveStep(1);
+}
+
+// ---- Show a temporary, user-friendly error toast ----
+function showErrorToast(message) {
+  const toast = document.getElementById("errorToast");
+  const toastMsg = document.getElementById("errorToastMsg");
+  toastMsg.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showErrorToast._t);
+  showErrorToast._t = setTimeout(() => toast.classList.remove("show"), 4500);
+}
+
+// ---- Submit handler: POST feedback to the Google Apps Script Web App ----
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (!validateForm()) return;
 
   sendBtn.disabled = true;
-  sendBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> Preparing...`;
+  sendBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> Sending...`;
 
-  const message = buildMessage();
-  const encoded = encodeURIComponent(message);
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
+  const payload = buildPayload();
 
-  successOverlay.classList.add("show");
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      // Apps Script Web Apps don't support CORS preflight well, so we send
+      // a "simple request" content type and read the response as opaque.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
 
-  setTimeout(() => {
-    window.location.href = waUrl;
-    // Reset button state in case redirect is blocked
+    // Show the premium success animation
+    successOverlay.classList.add("show");
+
     setTimeout(() => {
-      sendBtn.disabled = false;
-      sendBtn.innerHTML = `<i class="bi bi-whatsapp"></i> Submit`;
       successOverlay.classList.remove("show");
-    }, 4000);
-  }, 1400);
+      resetForm();
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = `<i class="bi bi-send-check"></i> Submit`;
+    }, 2200);
+
+  } catch (err) {
+    console.error("Feedback submission failed:", err);
+    showErrorToast("Something went wrong while sending your feedback. Please check your connection and try again.");
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = `<i class="bi bi-send-check"></i> Submit`;
+  }
 });
 
 // ---- Page loader: fade the logo loader out once everything has loaded ----
