@@ -2,11 +2,11 @@
    YES ACADEMY — Student Feedback Form logic
    ========================================================== */
 
-// ---- CONFIG: Google Apps Script Web App URL (deployed as a POST endpoint) ----
+// ---- CONFIG: Google Apps Script Web App URL (deployed as a POST/GET endpoint) ----
+// Replace this with YOUR OWN deployed Web App URL (see setup instructions).
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPxoCd7J0JsKmo03BsY2LYBaUmpyHuis7nNSApaVaRbaOL5jZ456DuK-dg4qqqDJtTkg/exec";
 
-// ---- Numeric rating scale (replaces the old 5-star system) ----
-// value -> label shown on each numbered card
+// ---- Numeric rating scale used by every question (1-5) ----
 const RATING_SCALE = [
   { value: 1, label: "Bad" },
   { value: 2, label: "Average" },
@@ -16,33 +16,39 @@ const RATING_SCALE = [
 ];
 
 // ---- Rating question sets per feedback category ----
+// NOTE: `label` is also used as the column header in the Google Sheet,
+// so keep these labels in sync with the ALL_RATING_HEADERS list in Code.gs.
 const RATING_SETS = {
   "PTE Mock Test": [
-    { id: "difficulty", label: "Mock Test Difficulty" },
+    { id: "difficulty", label: "Mock Test Difficulty Level" },
+    { id: "questionQuality", label: "Mock Test Question Quality" },
     { id: "accuracy", label: "Accuracy of Evaluation" },
-    { id: "speaking", label: "Speaking Feedback Quality" },
-    { id: "writing", label: "Writing Feedback Quality" },
+    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
+    { id: "comparison", label: "Our Mock Test Compared to Other Institutes" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
   "IELTS Mock Test": [
     { id: "quality", label: "Mock Test Quality" },
+    { id: "questionQuality", label: "Mock Test Question Quality" },
     { id: "bandAccuracy", label: "Band Score Accuracy" },
-    { id: "examinerFeedback", label: "Examiner Feedback" },
+    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
+    { id: "comparison", label: "Our Mock Test Compared to Other Institutes" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
   "Class Experience": [
-    { id: "teacherExplanation", label: "Teacher's Explanation" },
-    { id: "classEnvironment", label: "Class Environment" },
-    { id: "learningMaterials", label: "Learning Materials" },
-    { id: "overall", label: "Overall Class Experience" }
+    { id: "teacherGuidance", label: "Teacher Guidance Satisfaction" },
+    { id: "classroomEnvironment", label: "Classroom Environment & Facility" },
+    { id: "learningMaterials", label: "Learning Materials (PDFs & Videos)" },
+    { id: "overall", label: "Overall Learning Experience" }
   ],
   "Service Experience": [
-    { id: "staffBehaviour", label: "Staff Behaviour" },
+    { id: "frontOffice", label: "Front Office Behaviour" },
     { id: "admissionProcess", label: "Admission Process" },
-    { id: "communication", label: "Communication" },
-    { id: "overall", label: "Overall Service" }
+    { id: "staffCommunication", label: "Staff Communication" },
+    { id: "teacherBehaviour", label: "Teacher Behaviour" },
+    { id: "overall", label: "Overall Service Satisfaction" }
   ]
 };
 
@@ -61,10 +67,11 @@ const form = document.getElementById("feedbackForm");
 const sendBtn = document.getElementById("sendBtn");
 const successOverlay = document.getElementById("successOverlay");
 const ribbonSteps = document.querySelectorAll(".ribbon-step");
+const batchWrap = document.getElementById("batchWrap");
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// ---- Build numeric rating widget for a question (1 Good / 2 Very Good / 3 Excellent / 4 Wonderful) ----
+// ---- Build a numeric (1-5) rating widget for a single question ----
 function buildRatingGroup(question) {
   const wrap = document.createElement("div");
   wrap.className = "rating-group";
@@ -102,15 +109,14 @@ function buildRatingGroup(question) {
   return wrap;
 }
 
-// ---- Highlight only the chosen numeric card, using YES ACADEMY theme colors ----
+// ---- Highlight only the chosen numeric card ----
 function updateNumericSelection(numericRow, value) {
   [...numericRow.children].forEach((btn) => {
-    const v = Number(btn.dataset.value);
-    btn.classList.toggle("selected", v === value);
+    btn.classList.toggle("selected", Number(btn.dataset.value) === value);
   });
 }
 
-// ---- Render ratings for chosen category ----
+// ---- Render the rating questions for the chosen category ----
 function renderRatings(category) {
   ratingsContainer.innerHTML = "";
   Object.keys(ratingValues).forEach(k => delete ratingValues[k]);
@@ -118,21 +124,17 @@ function renderRatings(category) {
   const questions = RATING_SETS[category] || [];
   questions.forEach(q => ratingsContainer.appendChild(buildRatingGroup(q)));
 
-  if (questions.length) {
-    ratingsSection.hidden = false;
-    suggestionsSection.hidden = false;
-    setActiveStep(2);
-  } else {
-    ratingsSection.hidden = true;
-    suggestionsSection.hidden = true;
-  }
+  const hasQuestions = questions.length > 0;
+  ratingsSection.hidden = !hasQuestions;
+  suggestionsSection.hidden = !hasQuestions;
+  if (hasQuestions) setActiveStep(2);
 }
 
-function checkRatingsComplete(totalCount) {
-  const category = categorySelect.value;
-  const total = (RATING_SETS[category] || []).length;
+// ---- Advance the ribbon to step 3 once every question in the category is answered ----
+function checkRatingsComplete() {
+  const questions = RATING_SETS[categorySelect.value] || [];
   const answered = Object.keys(ratingValues).length;
-  if (answered >= total && total > 0) {
+  if (questions.length > 0 && answered >= questions.length) {
     setActiveStep(3);
   }
 }
@@ -147,20 +149,16 @@ function setActiveStep(stepNum) {
   });
 }
 
-// ---- Category change handler ----
+// ---- Category change: rebuild the rating questions ----
 categorySelect.addEventListener("change", () => {
   renderRatings(categorySelect.value);
 });
 
-// ---- Course change: reveal Batch Number field + advance ribbon once both basics chosen ----
-const batchWrap = document.getElementById("batchWrap");
-
+// ---- Course change: reveal Batch Number field, advance ribbon if ratings already shown ----
 function checkBasicsComplete() {
-  // Show the optional Batch Number field as soon as a course is picked
   batchWrap.hidden = !courseSelect.value;
-
-  if (courseSelect.value && categorySelect.value) {
-    if (ratingsSection.hidden === false) setActiveStep(2);
+  if (courseSelect.value && categorySelect.value && !ratingsSection.hidden) {
+    setActiveStep(2);
   }
 }
 courseSelect.addEventListener("change", checkBasicsComplete);
@@ -170,13 +168,16 @@ suggestionsField.addEventListener("input", () => {
   charCountEl.textContent = suggestionsField.value.length;
 });
 
-// ---- Convert a numeric rating (1-4) into its "N - Label" text for the message ----
+// ---- Convert a numeric rating (1-5) into its "N - Label" text ----
 function ratingText(value) {
   const entry = RATING_SCALE.find(r => r.value === value);
   return entry ? `${entry.value} - ${entry.label}` : "Not rated";
 }
 
-// ---- Build the JSON payload for the Google Sheet submission ----
+// ---- Build the JSON payload sent to the Google Sheet ----
+// Each rating is sent as { "Question Label": "N - Label" } so the Apps
+// Script can drop every answer into its own dedicated column, regardless
+// of which category (and therefore which set of questions) was used.
 function buildPayload() {
   const name = document.getElementById("studentName").value.trim();
   const course = courseSelect.value;
@@ -185,18 +186,17 @@ function buildPayload() {
   const suggestions = suggestionsField.value.trim();
   const questions = RATING_SETS[category] || [];
 
-  // Flatten ratings into one "Label: Value | Label: Value" string,
-  // since we send everything as URL query parameters (see submit handler)
-  const ratingsText = questions
-    .map(q => `${q.label}: ${ratingText(ratingValues[q.id] || 0)}`)
-    .join(" | ");
+  const ratingsData = {};
+  questions.forEach(q => {
+    ratingsData[q.label] = ratingText(ratingValues[q.id]);
+  });
 
   return {
     name: name || "Not provided",
     course: course,
     batchNumber: batch || "Not provided",
     category: category,
-    ratings: ratingsText,
+    ratingsData: JSON.stringify(ratingsData),
     suggestions: suggestions || "None",
     submittedAt: new Date().toISOString()
   };
@@ -224,7 +224,6 @@ function validateForm() {
   const missing = questions.filter(q => !ratingValues[q.id]);
   if (missing.length > 0) {
     valid = false;
-    // Briefly highlight missing rating groups
     missing.forEach(q => {
       const group = ratingsContainer.querySelector(`[data-qid="${q.id}"]`);
       if (group) {
@@ -259,7 +258,7 @@ function showErrorToast(message) {
   showErrorToast._t = setTimeout(() => toast.classList.remove("show"), 4500);
 }
 
-// ---- Submit handler: POST feedback to the Google Apps Script Web App ----
+// ---- Submit handler: sends feedback to the Google Apps Script Web App ----
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -270,7 +269,7 @@ form.addEventListener("submit", async (e) => {
 
   const payload = buildPayload();
 
-  // Send as a GET with query parameters — Google's /exec redirect strips
+  // Sent as a GET with query parameters — Google's /exec redirect strips
   // the body from POST requests, so query params are the reliable path.
   const queryString = new URLSearchParams(payload).toString();
   const requestUrl = `${SCRIPT_URL}?${queryString}`;
@@ -285,7 +284,6 @@ form.addEventListener("submit", async (e) => {
       mode: "no-cors"
     });
 
-    // Show the premium success animation
     successOverlay.classList.add("show");
 
     setTimeout(() => {
@@ -306,7 +304,6 @@ form.addEventListener("submit", async (e) => {
 // ---- Page loader: fade the logo loader out once everything has loaded ----
 window.addEventListener("load", () => {
   const loader = document.getElementById("pageLoader");
-  // Small delay so the premium pulse animation is visible even on fast connections
   setTimeout(() => {
     loader.classList.add("loaded");
   }, 600);
