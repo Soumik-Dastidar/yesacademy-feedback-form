@@ -4,7 +4,7 @@
 
 // ---- CONFIG: Google Apps Script Web App URL (deployed as a POST/GET endpoint) ----
 // Replace this with YOUR OWN deployed Web App URL (see setup instructions).
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPxoCd7J0JsKmo03BsY2LYBaUmpyHuis7nNSApaVaRbaOL5jZ456DuK-dg4qqqDJtTkg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4y0goQ6EEgztBzGomN6Jf55_dTbXQY8k06wdr0FrdJkNRHxfzAmnDYaP5cJTh4Ct4jw/exec";
 
 // ---- Numeric rating scale used by every question (1-5) ----
 const RATING_SCALE = [
