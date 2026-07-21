@@ -4,7 +4,7 @@
 
 // ---- CONFIG: Google Apps Script Web App URL (deployed as a POST/GET endpoint) ----
 // Replace this with YOUR OWN deployed Web App URL (see setup instructions).
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4y0goQ6EEgztBzGomN6Jf55_dTbXQY8k06wdr0FrdJkNRHxfzAmnDYaP5cJTh4Ct4jw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPxoCd7J0JsKmo03BsY2LYBaUmpyHuis7nNSApaVaRbaOL5jZ456DuK-dg4qqqDJtTkg/exec";
 
 // ---- Numeric rating scale used by every question (1-5) ----
 const RATING_SCALE = [
@@ -20,20 +20,14 @@ const RATING_SCALE = [
 // so keep these labels in sync with the ALL_RATING_HEADERS list in Code.gs.
 const RATING_SETS = {
   "PTE Mock Test": [
-    { id: "difficulty", label: "Mock Test Difficulty Level" },
-    { id: "questionQuality", label: "Mock Test Question Quality" },
-    { id: "accuracy", label: "Accuracy of Evaluation" },
-    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
+    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "comparison", label: "Our Mock Test Compared to Other Institutes" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
   "IELTS Mock Test": [
-    { id: "quality", label: "Mock Test Quality" },
-    { id: "questionQuality", label: "Mock Test Question Quality" },
-    { id: "bandAccuracy", label: "Band Score Accuracy" },
-    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "facility", label: "Equipment Quality & Facility Satisfaction" },
+    { id: "speakingWriting", label: "Speaking & Writing Feedback Satisfaction" },
     { id: "comparison", label: "Our Mock Test Compared to Other Institutes" },
     { id: "overall", label: "Overall Satisfaction" }
   ],
