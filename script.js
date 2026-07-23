@@ -180,17 +180,16 @@ function buildPayload() {
   const suggestions = suggestionsField.value.trim();
   const questions = RATING_SETS[category] || [];
 
-  const ratingsData = {};
-  questions.forEach(q => {
-    ratingsData[q.label] = ratingText(ratingValues[q.id]);
-  });
+  const ratingsFlattened = questions
+    .map(q => `${q.label}: ${ratingText(ratingValues[q.id])}`)
+    .join(" | ");
 
   return {
     name: name || "Not provided",
     course: course,
     batchNumber: batch || "Not provided",
     category: category,
-    ratingsData: JSON.stringify(ratingsData),
+    ratings: ratingsFlattened,
     suggestions: suggestions || "None",
     submittedAt: new Date().toISOString()
   };
